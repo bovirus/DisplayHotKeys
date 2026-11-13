@@ -1,46 +1,68 @@
-#define MyAppName "Display Hot Keys"
-#define MySettingsDirName "DisplayHotKeys"
-#define MySettingsFileName "settings.ini"
-#define MyLockFileName "DisplayHotKeys.lock"
-#define MyStartupFilePath "AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\StartDisplayHotKeys.bat"
-#define ProfileListKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-#define MyAppVersion "4.3.1"
-#define MyAppCopyright "Copyright (C) 2026 Jonathan R. Miller"
-#define MyAppPublisher "Jonathan R. Miller"
-#define MyAppURL "https://github.com/jon-mil-92/DisplayHotKeys"
-#define MyAppExeName "DisplayHotKeys.exe"
+#define DistDir              SourcePath
+#define ProjectDir           SourcePath + "\.."
+#define MyAppName            "Display Hot Keys"
+#define MySettingsDirName    "DisplayHotKeys"
+#define MySettingsFileName   "settings.ini"
+#define MyLockFileName       "DisplayHotKeys.lock"
+#define MyStartupFilePath    "AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\StartDisplayHotKeys.bat"
+#define ProfileListKey       "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+;#define MyAppVersion         "4.3.1"
+#define MyAppVersion()       GetVersionComponents(DistDir+'\jpackage-out\DisplayHotKeys\DisplayHotKeys.exe', Local[0], Local[1], Local[2], Local[3]), str(Local[0]) + "." + str(Local[1]) + "." + str(Local[2])
+#define MyAppAuthor          "Jonathan R. Miller"
+#define CurrentYear          GetDateTimeString('yyyy','','')
+#define StartYearCopyright   "2026"
+#define MyAppPublisher       "Jonathan R. Miller"
+#define MyAppURL             "https://github.com/jon-mil-92/DisplayHotKeys"
+#define MyAppExeName         "DisplayHotKeys.exe"
 #define MyAppLauncherExeName "DisplayHotKeysLauncher.exe"
-#define DistDir SourcePath
-#define ProjectDir SourcePath + "\.."
+
+#include                     "DisplayHotKeysInstaller_Languages.iss"
+
+; From 2027 onward show a range rather than only the current year
+; so the copyright reads 2026-2027 and so on.
+#if CurrentYear == StartYearCopyright
+  #define MyAppCopyright StartYearCopyright + " " + MyAppAuthor
+#else
+  #define MyAppCopyright StartYearCopyright + "-" + CurrentYear + " " + MyAppAuthor
+#endif
 
 [Setup]
 AppId={{8600871E-B870-4E14-807C-E37606DD0855}
 AppName={#MyAppName}
-VersionInfoVersion={#MyAppVersion}
-VersionInfoDescription={#MyAppName} Installer
 AppVersion={#MyAppVersion}
+
+VersionInfoVersion={#MyAppVersion}
+VersionInfoDescription={#MyAppName} installer
+
 AppCopyright={#MyAppCopyright}
-AppPublisher={#MyAppPublisher}
+
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+
+UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
+AppPublisher={#MyAppPublisher}
+
+SetupIconFile={#DistDir}\dhk.ico
+
+ShowLanguageDialog=yes
+UsePreviousLanguage=no
+
+WizardStyle=modern
+
 DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 LicenseFile={#ProjectDir}\LICENSE.txt
 OutputDir={#DistDir}
 OutputBaseFilename=DisplayHotKeysInstaller
-SetupIconFile={#DistDir}\dhk.ico
 Compression=lzma
 SolidCompression=yes
-WizardStyle=modern
 CloseApplications=force
 CloseApplicationsFilter=*.exe,*.dll
 RestartApplications=no
 
-[Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -182,9 +204,9 @@ begin
     if SettingsDirs.Count = 0 then
       Exit;
 
-    SettingsPrompt := 'Do you also want to delete the saved {#MyAppName} settings for all users?';
+    SettingsPrompt := '{cm:DeleteSavedSettings}';
     SettingsPrompt := SettingsPrompt + NewParagraph;
-    SettingsPrompt := SettingsPrompt + 'Keeping them preserves saved slots if you reinstall.';
+    SettingsPrompt := SettingsPrompt + '{cm:KeepingSettings}';
 
     if SuppressibleMsgBox(SettingsPrompt, mbConfirmation, MB_YESNO or MB_DEFBUTTON2, IDNO) <> IDYES then
       Exit;
